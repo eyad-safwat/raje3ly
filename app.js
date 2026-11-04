@@ -4,11 +4,37 @@ en:{navLevels:"Study levels",navHow:"How it works",navBooking:"Book a review",na
 };
 let lang="ar";
 const langToggle=document.getElementById("langToggle");
-function setLanguage(next){lang=next;document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";document.body.dir=lang==="ar"?"rtl":"ltr";document.querySelectorAll("[data-i18n]").forEach(el=>{const key=el.dataset.i18n;if(translations[lang][key])el.innerHTML=translations[lang][key]});langToggle.textContent=lang==="ar"?"EN":"عربي";document.querySelectorAll('input[name="name"]').forEach(x=>x.placeholder=lang==="ar"?"الاسم بالكامل":"Full name");document.querySelector('input[name="grade"]').placeholder=lang==="ar"?"مثال: الصف السادس":"e.g. Grade 6";document.querySelector('input[name="topic"]').placeholder=lang==="ar"?"مثال: Unit 3 / Tenses / Writing":"e.g. Unit 3 / Tenses / Writing";document.querySelector('textarea[name="details"]').placeholder=lang==="ar"?"اكتب ما تحتاج إلى مراجعته...":"Tell us what you need to review...";}
+function setLanguage(next){lang=next;document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";document.body.dir=lang==="ar"?"rtl":"ltr";document.querySelectorAll("[data-i18n]").forEach(el=>{const key=el.dataset.i18n;if(translations[lang][key])el.innerHTML=translations[lang][key]});langToggle.textContent=lang==="ar"?"EN":"عربي";document.querySelectorAll('input[name="name"]').forEach(x=>x.placeholder=lang==="ar"?"الاسم بالكامل":"Full name");const gradeInput=document.querySelector('input[name="grade"]');if(gradeInput)gradeInput.placeholder=lang==="ar"?"مثال: الصف السادس":"e.g. Grade 6";const topicInput=document.querySelector('input[name="topic"]');if(topicInput)topicInput.placeholder=lang==="ar"?"مثال: Unit 3 / Tenses / Writing":"e.g. Unit 3 / Tenses / Writing";const detailsInput=document.querySelector('textarea[name="details"]');if(detailsInput)detailsInput.placeholder=lang==="ar"?"اكتب ما تحتاج إلى مراجعته...":"Tell us what you need to review...";}
 langToggle.addEventListener("click",()=>setLanguage(lang==="ar"?"en":"ar"));
 document.getElementById("menuToggle").addEventListener("click",()=>document.getElementById("mainNav").classList.toggle("open"));
 document.querySelectorAll("#mainNav a").forEach(a=>a.addEventListener("click",()=>document.getElementById("mainNav").classList.remove("open")));
 document.getElementById("year").textContent=new Date().getFullYear();
+
+// Apply editable site settings (links, team section and advertising spaces).
+const siteConfig=window.RAJE3LY_CONFIG||{};
+const formUrl=(siteConfig.bookingFormUrl||"").trim();
+const formLink=document.getElementById("googleFormLink");
+const bookingButton=document.getElementById("bookSessionBtn");
+const bookingHint=document.getElementById("googleFormHint");
+const bookingNote=document.getElementById("bookingLinkNote");
+if(formUrl){
+  if(formLink){formLink.href=formUrl;formLink.removeAttribute("aria-disabled");}
+  if(bookingButton){bookingButton.href=formUrl;bookingButton.target="_blank";bookingButton.rel="noopener";}
+  if(bookingHint)bookingHint.textContent="سيتم فتح نموذج Google Forms في نافذة جديدة.";
+  if(bookingNote)bookingNote.hidden=true;
+}else{
+  if(formLink){formLink.href="#";formLink.addEventListener("click",e=>{e.preventDefault();if(bookingHint)bookingHint.textContent="أضف رابط Google Forms في ملف site-config.js لتفعيل الحجز.";});}
+  if(bookingButton){bookingButton.href="#booking";}
+}
+if(siteConfig.whatsapp){document.querySelectorAll('a[href*="wa.me/"]').forEach(a=>a.href=`https://wa.me/${siteConfig.whatsapp}`);}
+const teamSection=document.querySelector('[data-feature="team"]');
+if(teamSection)teamSection.hidden=!(siteConfig.features&&siteConfig.features.team);
+if(siteConfig.features&&siteConfig.features.ads){document.querySelectorAll('[data-ad-slot]').forEach(slot=>slot.hidden=false);}
+const libraryButton=document.querySelector('.action-card[href="#library"]');
+if(libraryButton&&siteConfig.libraryUrl)libraryButton.href=siteConfig.libraryUrl;
+const mediaButton=document.querySelector('.action-card[href="#lectures"]');
+if(mediaButton&&siteConfig.mediaUrl)mediaButton.href=siteConfig.mediaUrl;
+
 
 const questions=[
 {q:"Choose the correct answer: She ____ to school every day.",a:["go","goes","going","gone"],c:1,why:"With he / she / it in the present simple, we add -s or -es to the verb."},
@@ -24,5 +50,6 @@ nextBtn.addEventListener("click",()=>{if(selected===null)return;if(!answered){an
 function showResult(){document.getElementById("quizContent").hidden=true;document.getElementById("quizResult").hidden=false;document.getElementById("quizResult").innerHTML=`<div class="result-score">${score}/5</div><h3 class="result-copy">${lang==="ar"?"أحسنت! هذه نتيجتك في الاختبار التجريبي.":"Well done! Here is your sample quiz result."}</h3><p class="result-copy">${lang==="ar"?"راجع الإجابات وحاول مرة أخرى لتحقق نتيجة أفضل.":"Review the answers and try again to improve your score."}</p><button class="btn btn-primary quiz-next" id="retryQuiz">${lang==="ar"?"أعد الاختبار ↻":"Try again ↻"}</button>`;document.getElementById("retryQuiz").addEventListener("click",()=>{qi=0;score=0;document.getElementById("quizContent").hidden=false;document.getElementById("quizResult").hidden=true;renderQuestion()})}
 renderQuestion();
 
-document.getElementById("bookingForm").addEventListener("submit",e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.target).entries());const msg=`RAJE3LY ENGLISH - Review Request\nName: ${data.name}\nStage: ${data.stage}\nGrade: ${data.grade}\nTopic: ${data.topic}\nService: ${data.type}\nWhatsApp: ${data.phone}\nDetails: ${data.details||"-"}`;const target=(window.RAJE3LY_CONFIG&&window.RAJE3LY_CONFIG.whatsapp)||"201007270385";if(target){window.open(`https://wa.me/${target}?text=${encodeURIComponent(msg)}`,"_blank");const box=document.getElementById("formMessage");box.textContent=lang==="ar"?"تم فتح واتساب برسالة طلبك. اضغط إرسال داخل واتساب لإتمام الطلب.":"WhatsApp opened with your request. Tap Send in WhatsApp to submit it."}});
+const legacyBookingForm=document.getElementById("bookingForm");
+if(legacyBookingForm)legacyBookingForm.addEventListener("submit",e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.target).entries());const msg=`RAJE3LY ENGLISH - Review Request\nName: ${data.name}\nStage: ${data.stage}\nGrade: ${data.grade}\nTopic: ${data.topic}\nService: ${data.type}\nWhatsApp: ${data.phone}\nDetails: ${data.details||"-"}`;const target=(window.RAJE3LY_CONFIG&&window.RAJE3LY_CONFIG.whatsapp)||"201007270385";if(target){window.open(`https://wa.me/${target}?text=${encodeURIComponent(msg)}`,"_blank");const box=document.getElementById("formMessage");box.textContent=lang==="ar"?"تم فتح واتساب برسالة طلبك. اضغط إرسال داخل واتساب لإتمام الطلب.":"WhatsApp opened with your request. Tap Send in WhatsApp to submit it."}});
 if("serviceWorker" in navigator && location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
